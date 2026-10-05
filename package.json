@@ -1,0 +1,8 @@
+{
+  "name": "hamamidaira-checker",
+  "private": true,
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261005.1",
+    "wrangler": "^4.147.0"
+  }
+}

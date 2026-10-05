@@ -1,12 +1,12 @@
 // 浜見平保育園 一時預かり（初回オリエンテーション）空き枠ウォッチャー
 // kViewer の公開ビューが裏で叩いている JSON API を直接読み、
-// 新しい予約枠（レコード）が出たら Resend 経由でメール通知する。
+// 新しい予約枠（レコード）が出たら Cloudflare Email Service 経由でメール通知する。
 
 export interface Env {
   SEEN: KVNamespace;
-  RESEND_API_KEY: string; // wrangler secret put RESEND_API_KEY
-  MAIL_FROM: string;      // 例: "Hamamidaira Watcher <onboarding@resend.dev>"
-  MAIL_TO: string;        // 例: "ttp7015@gmail.com"
+  EMAIL: SendEmail;  // wrangler.toml の [[send_email]]
+  MAIL_FROM: string; // Email Routing を有効にしたドメインのアドレス。例: "watcher@edwardkenfox.com"
+  MAIL_TO: string;   // 検証済みの宛先アドレス。例: "ttp7015@gmail.com"
 }
 
 const VIEW_CODE = "445e5020f6897286e6563ac9befebd4ac42cc49f0d6cb0b6eef0b20a31e732c3";
@@ -33,12 +33,12 @@ function describe(rec: KRecord): string {
 }
 
 async function sendMail(env: Env, subject: string, text: string) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: env.MAIL_FROM, to: [env.MAIL_TO], subject, text }),
+  await env.EMAIL.send({
+    from: { email: env.MAIL_FROM, name: "Hamamidaira Watcher" },
+    to: env.MAIL_TO,
+    subject,
+    text,
   });
-  if (!res.ok) throw new Error(`Resend error ${res.status}: ${await res.text()}`);
 }
 
 async function check(env: Env): Promise<string> {

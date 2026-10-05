@@ -9,18 +9,22 @@
 
 ## セットアップ
 ```bash
-npm i -D wrangler @cloudflare/workers-types
+npm install
 npx wrangler login
+npx wrangler email routing enable edwardkenfox.com                # ドメインにメール用の DNS レコード（MX など）が追加される
+npx wrangler email routing addresses create ttp7015@gmail.com     # 届いた確認メールのリンクを開いて検証する
 npx wrangler kv namespace create SEEN      # 出力された id を wrangler.toml に貼る
-npx wrangler secret put RESEND_API_KEY     # Resend の API キー
-npx wrangler dev --test-scheduled          # ローカルで動作確認
-#   → http://localhost:8787/__scheduled?cron=7+23,0-11+*+*+* を開いて "no new slots (total 0)" が出ればOK
+npx wrangler dev                           # ローカルで動作確認
+#   → http://localhost:8787/ を開いて "no new slots (total 0)" が出ればOK
 npx wrangler deploy
 ```
 
-## メール（Resend）
-- `onboarding@resend.dev` から送れるのは、**Resend アカウントを登録したメールアドレス宛てだけ**。ttp7015@gmail.com で Resend に登録すれば、そのまま使える。
-- それ以外の宛先に送る場合は、Resend で自分のドメインを認証して `MAIL_FROM` を変更する。
+## メール（Cloudflare Email Service）
+- `send_email` バインディングで送る。API キーは不要。
+- 送信元（`MAIL_FROM`）は Email Routing を有効にしたドメインのアドレスにする。
+- 送れるのは**アカウントで検証済みの宛先アドレス宛てだけ**。この範囲なら Workers Free でも無料で、送信数の上限にも数えられない。
+- それ以外の宛先に送る場合は、ドメインを Email Sending にオンボードする（Workers Paid プランが必要）。
+- `wrangler dev` ではメールは実際には送られない。実際に送って試すなら `wrangler.toml` の `[[send_email]]` に `remote = true` を足し、デプロイ前に外す。
 
 ## 注意
 - このサイトの robots.txt は自動アクセスを許可していない。アクセスは1時間に1回までにとどめること。
