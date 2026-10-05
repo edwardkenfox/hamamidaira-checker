@@ -16,4 +16,4 @@ name = "EMAIL"
 
 [vars]
 MAIL_FROM = "watcher@edwardkenfox.com"   # Email Routing を有効にしたドメインのアドレス
-MAIL_TO = "ttp7015@gmail.com"            # 検証済みの宛先アドレスにしか送れない
+MAIL_TO = "ttp7015@gmail.com,edwardkenfox@gmail.com"   # カンマ区切り。検証済みの宛先アドレスにしか送れない

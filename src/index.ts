@@ -6,7 +6,7 @@ export interface Env {
   SEEN: KVNamespace;
   EMAIL: SendEmail;  // wrangler.toml の [[send_email]]
   MAIL_FROM: string; // Email Routing を有効にしたドメインのアドレス。例: "watcher@edwardkenfox.com"
-  MAIL_TO: string;   // 検証済みの宛先アドレス。例: "ttp7015@gmail.com"
+  MAIL_TO: string;   // 検証済みの宛先アドレス（カンマ区切りで複数可）。例: "ttp7015@gmail.com"
 }
 
 const VIEW_CODE = "445e5020f6897286e6563ac9befebd4ac42cc49f0d6cb0b6eef0b20a31e732c3";
@@ -33,12 +33,23 @@ function describe(rec: KRecord): string {
 }
 
 async function sendMail(env: Env, subject: string, text: string) {
-  await env.EMAIL.send({
-    from: { email: env.MAIL_FROM, name: "Hamamidaira Watcher" },
-    to: env.MAIL_TO,
-    subject,
-    text,
-  });
+  // 宛先ごとに1通ずつ送る。1通にまとめると、1人への配送失敗で全員分が失敗する。
+  const recipients = env.MAIL_TO.split(",").map((a) => a.trim());
+  const results = await Promise.allSettled(
+    recipients.map(async (to) => {
+      const message = { from: { email: env.MAIL_FROM, name: "Hamamidaira Watcher" }, to, subject, text };
+      try {
+        await env.EMAIL.send(message);
+      } catch {
+        // 一時的な配送失敗があるので、1回だけ再送する。
+        await env.EMAIL.send(message);
+      }
+    }),
+  );
+  const errors = results.flatMap((r, i) =>
+    r.status === "rejected" ? [`${recipients[i]}: ${(r.reason as Error).message}`] : []);
+  if (errors.length > 0) console.error(`メール送信に失敗: ${errors.join(" / ")}`);
+  if (errors.length === recipients.length) throw new Error(`全宛先へのメール送信に失敗: ${errors.join(" / ")}`);
 }
 
 async function check(env: Env): Promise<string> {

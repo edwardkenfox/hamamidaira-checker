@@ -22,6 +22,7 @@ npx wrangler deploy
 ## メール（Cloudflare Email Service）
 - `send_email` バインディングで送る。API キーは不要。
 - 送信元（`MAIL_FROM`）は Email Routing を有効にしたドメインのアドレスにする。
+- 宛先は `MAIL_TO` にカンマ区切りで並べる。宛先ごとに1通ずつ送る。
 - 送れるのは**アカウントで検証済みの宛先アドレス宛てだけ**。この範囲なら Workers Free でも無料で、送信数の上限にも数えられない。
 - それ以外の宛先に送る場合は、ドメインを Email Sending にオンボードする（Workers Paid プランが必要）。
 - `wrangler dev` ではメールは実際には送られない。実際に送って試すなら `wrangler.toml` の `[[send_email]]` に `remote = true` を足し、デプロイ前に外す。
