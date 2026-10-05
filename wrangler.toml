@@ -1,0 +1,16 @@
+name = "hamamidaira-watcher"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = false   # 公開URLは不要（cronだけで動かす）
+
+# 日本時間 8:07〜20:07 に毎時（cronはUTCで書く: JST 8〜20時 = UTC 23時と0〜11時）
+[triggers]
+crons = ["7 23,0-11 * * *"]
+
+[[kv_namespaces]]
+binding = "SEEN"
+id = "REPLACE_WITH_KV_ID"   # `npx wrangler kv namespace create SEEN` の出力で置き換え
+
+[vars]
+MAIL_FROM = "Hamamidaira Watcher <onboarding@resend.dev>"
+MAIL_TO = "ttp7015@gmail.com"
